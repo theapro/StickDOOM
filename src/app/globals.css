@@ -1,26 +1,191 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* ------------------------------------------------------------------ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  --color-paper: #f7f7f5;
+  --color-ink: #111111;
+  /* #777 fails WCAG AA on paper/card for small text; #666 passes on both. */
+  --color-muted: #666666;
+  --color-accent: #e53935;
+  --color-card: #eeeeeb;
+  --color-line: #e3e3df;
+  --color-line-strong: #c9c9c4;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --breakpoint-xs: 25rem;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --animate-enter: enter 0.7s var(--ease-out-expo) both;
+  --animate-progress: progress linear forwards;
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  @keyframes progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --font-display: var(--display-stack);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--mono-stack);
+}
+
+/* Space Grotesk and Space Mono have no Cyrillic, so Russian pages use Manrope and JetBrains Mono.
+   Latin-only text inside a Russian page (the wordmark, the English tagline) opts back in with `lang`. */
+:root,
+[lang]:not(:lang(ru)) {
+  --display-stack: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --mono-stack: var(--font-space-mono), ui-monospace, monospace;
+}
+
+:root:lang(ru) {
+  --display-stack: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --mono-stack: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+:root {
+  --header-h: 4rem;
+  --gutter: 1.25rem;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --gutter: 2rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --gutter: 3rem;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout + typography utilities                                       */
+/* ------------------------------------------------------------------ */
+
+@utility shell {
+  width: 100%;
+  max-width: 100rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Technical mono label: section indices, metadata, codes. */
+@utility label {
+  font-family: var(--mono-stack);
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@utility type-display {
+  font-family: var(--display-stack);
+  font-weight: 700;
+  line-height: 0.82;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+@utility type-h1 {
+  font-family: var(--display-stack);
+  font-weight: 700;
+  font-size: clamp(2.75rem, 8.4vw, 7.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+@utility type-h2 {
+  font-family: var(--display-stack);
+  font-weight: 700;
+  font-size: clamp(2.25rem, 6vw, 5.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+@utility type-h3 {
+  font-family: var(--display-stack);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+@utility type-lead {
+  font-size: clamp(1.0625rem, 1.3vw, 1.25rem);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+
+@layer base {
+  html {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  [id] {
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The hero autoplay timer is driven by its progress animation, so it keeps its real duration. */
+  *:not([data-autoplay-progress]),
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
